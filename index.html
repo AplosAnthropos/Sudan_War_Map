@@ -36,6 +36,30 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     }).addTo(map);
   });
 
+  fetch('frontlines.geojson')
+  .then(res => res.json())
+  .then(data => {
+
+    L.geoJSON(data, {
+      style: function(feature) {
+        return {
+          color: "red",
+          weight: 4
+        };
+      },
+
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup(
+          "<b>" + feature.properties.name + "</b><br>" +
+          feature.properties.faction + "<br>" +
+          "<i>" + feature.properties.date + "</i>"
+        );
+      }
+
+    }).addTo(map);
+
+  });
+
 </script>
 
 </body>
