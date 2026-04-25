@@ -15,26 +15,26 @@
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
 
-  // Initialize map
   var map = L.map('map').setView([15.5, 32.5], 6);
 
-  // Base layer
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // --------------------
-  // EVENTS (POINTS)
-  // --------------------
+  // ====================
+  // EVENTS
+  // ====================
   fetch('events.geojson')
     .then(res => res.json())
     .then(data => {
 
-      var eventsLayer = L.geoJSON(data, {
+      L.geoJSON(data, {
 
         pointToLayer: function (feature, latlng) {
+
           let color = "blue";
 
           if (feature.properties.type === "clash") color = "red";
@@ -51,37 +51,37 @@
         },
 
         onEachFeature: function (feature, layer) {
-  onEachFeature: function (feature, layer) {
 
-  let confidence = feature.properties.confidence;
-  let confColor = "gray";
+          let confidence = feature.properties.confidence || "unknown";
+          let confColor = "gray";
 
-  if (confidence === "high") confColor = "green";
-  if (confidence === "medium") confColor = "orange";
-  if (confidence === "low") confColor = "red";
+          if (confidence === "high") confColor = "green";
+          if (confidence === "medium") confColor = "orange";
+          if (confidence === "low") confColor = "red";
 
-  layer.bindPopup(
-    "<b>" + feature.properties.title + "</b><br>" +
-    "<b>Type:</b> " + feature.properties.type + "<br>" +
-    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
-    "<b>Description:</b> " + feature.properties.description + "<br>" +
-    "<b>Date:</b> " + feature.properties.date + "<br>" +
-    "<b>Confidence:</b> <span style='color:" + confColor + "'>" + confidence + "</span><br>" +
-    "<b>Source:</b> " + feature.properties.source
-  );
-}
+          layer.bindPopup(
+            "<b>" + (feature.properties.title || "") + "</b><br>" +
+            "<b>Type:</b> " + (feature.properties.type || "") + "<br>" +
+            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
+            "<b>Description:</b> " + (feature.properties.description || "") + "<br>" +
+            "<b>Date:</b> " + (feature.properties.date || "") + "<br>" +
+            "<b>Confidence:</b> <span style='color:" + confColor + "'>" + confidence + "</span><br>" +
+            "<b>Source:</b> " + (feature.properties.source || "")
+          );
+        }
+
       }).addTo(map);
 
     });
 
-  // --------------------
-  // FRONTLINES (LINES)
-  // --------------------
+  // ====================
+  // FRONTLINES
+  // ====================
   fetch('frontlines.geojson')
     .then(res => res.json())
     .then(data => {
 
-      var frontlineLayer = L.geoJSON(data, {
+      L.geoJSON(data, {
 
         style: function(feature) {
 
@@ -98,25 +98,26 @@
         },
 
         onEachFeature: function (feature, layer) {
-  layer.bindPopup(
-    "<b>" + feature.properties.name + "</b><br>" +
-    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
-    "<b>Date:</b> " + feature.properties.date + "<br>" +
-    "<b>Confidence:</b> " + feature.properties.confidence
-  );
-}
+
+          layer.bindPopup(
+            "<b>" + (feature.properties.name || "") + "</b><br>" +
+            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
+            "<b>Date:</b> " + (feature.properties.date || "")
+          );
+        }
+
       }).addTo(map);
 
     });
 
-  // --------------------
-  // CONTROL (POLYGONS)
-  // --------------------
+  // ====================
+  // CONTROL AREAS
+  // ====================
   fetch('control.geojson')
     .then(res => res.json())
     .then(data => {
 
-      var controlLayer = L.geoJSON(data, {
+      L.geoJSON(data, {
 
         style: function(feature) {
 
@@ -141,14 +142,15 @@
         },
 
         onEachFeature: function (feature, layer) {
-  layer.bindPopup(
-    "<b>" + feature.properties.name + "</b><br>" +
-    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
-    "<b>Status:</b> " + feature.properties.status + "<br>" +
-    "<b>Date:</b> " + feature.properties.date + "<br>" +
-    "<b>Confidence:</b> " + feature.properties.confidence
-  );
-}
+
+          layer.bindPopup(
+            "<b>" + (feature.properties.name || "") + "</b><br>" +
+            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
+            "<b>Status:</b> " + (feature.properties.status || "") + "<br>" +
+            "<b>Date:</b> " + (feature.properties.date || "") + "<br>" +
+            "<b>Confidence:</b> " + (feature.properties.confidence || "")
+          );
+        }
 
       }).addTo(map);
 
