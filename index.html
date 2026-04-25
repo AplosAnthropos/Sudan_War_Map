@@ -51,13 +51,16 @@
         },
 
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.title + "</b><br>" +
-            feature.properties.faction + "<br>" +
-            feature.properties.description + "<br>" +
-            "<i>" + feature.properties.date + "</i>"
-          );
-        }
+  layer.bindPopup(
+    "<b>" + feature.properties.title + "</b><br>" +
+    "<b>Type:</b> " + feature.properties.type + "<br>" +
+    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
+    "<b>Description:</b> " + feature.properties.description + "<br>" +
+    "<b>Date:</b> " + feature.properties.date + "<br>" +
+    "<b>Confidence:</b> " + feature.properties.confidence + "<br>" +
+    "<b>Source:</b> " + feature.properties.source
+  );
+}
 
       }).addTo(map);
 
