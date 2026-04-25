@@ -5,16 +5,13 @@
       "type": "Feature",
       "properties": {
         "name": "Khartoum Frontline",
-        "faction": "SAF vs RSF",
-        "date": "2026-04-25",
-        "confidence": "medium"
+        "faction": "SAF"
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
-          [32.50, 15.60],
-          [32.55, 15.55],
-          [32.60, 15.50]
+          [32.5, 15.6],
+          [32.7, 15.4]
         ]
       }
     }
