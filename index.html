@@ -27,52 +27,44 @@
   // ====================
   // EVENTS
   // ====================
-  fetch('events.geojson')
-    .then(res => res.json())
-    .then(data => {
+  
+fetch('events.geojson')
+  .then(res => res.json())
+  .then(data => {
 
-      L.geoJSON(data, {
+    let combined = {
+      type: "FeatureCollection",
+      features: data.features.concat(savedEvents)
+    };
 
-        pointToLayer: function (feature, latlng) {
+    L.geoJSON(combined, {
 
-          let color = "blue";
+      pointToLayer: function(feature, latlng) {
+        let color = "blue";
 
-          if (feature.properties.type === "clash") color = "red";
-          if (feature.properties.type === "movement") color = "orange";
-          if (feature.properties.type === "airstrike") color = "black";
+        if (feature.properties.type === "clash") color = "red";
+        if (feature.properties.type === "movement") color = "orange";
+        if (feature.properties.type === "airstrike") color = "black";
 
-          return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: color,
-            color: "#000",
-            weight: 1,
-            fillOpacity: 0.8
-          });
-        },
+        return L.circleMarker(latlng, {
+          radius: 8,
+          fillColor: color,
+          color: "#000",
+          weight: 1,
+          fillOpacity: 0.8
+        });
+      },
 
-        onEachFeature: function (feature, layer) {
+      onEachFeature: function(feature, layer) {
+        layer.bindPopup(
+          `<b>${feature.properties.title}</b><br>` +
+          `${feature.properties.description || ""}`
+        );
+      }
 
-          let confidence = feature.properties.confidence || "unknown";
-          let confColor = "gray";
+    }).addTo(map);
 
-          if (confidence === "high") confColor = "green";
-          if (confidence === "medium") confColor = "orange";
-          if (confidence === "low") confColor = "red";
-
-          layer.bindPopup(
-            "<b>" + (feature.properties.title || "") + "</b><br>" +
-            "<b>Type:</b> " + (feature.properties.type || "") + "<br>" +
-            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
-            "<b>Description:</b> " + (feature.properties.description || "") + "<br>" +
-            "<b>Date:</b> " + (feature.properties.date || "") + "<br>" +
-            "<b>Confidence:</b> <span style='color:" + confColor + "'>" + confidence + "</span><br>" +
-            "<b>Source:</b> " + (feature.properties.source || "")
-          );
-        }
-
-      }).addTo(map);
-
-    });
+  });
 
   // ====================
   // FRONTLINES
