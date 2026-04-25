@@ -33,7 +33,21 @@
         "confidence": "medium",
         "source": "unknown"
       }
-    }
+    },
 
-  ]
-}
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [22.47, 13.26]
+      },
+      "properties": {
+        "title": "Displacement of children to Tawila",
+        "type": "movement",
+        "faction": "RSF",
+        "description": "Hundreds of children have arrived unaccompanied in Tawila after RSF forces seized control of el-Fasher last month.",
+        "date": "2026-04-25",
+        "confidence": "medium",
+        "source": "news"
+      }
+    },
