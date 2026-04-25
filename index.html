@@ -12,14 +12,22 @@ let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
    SAFE LOADER FUNCTION
 ========================= */
 function safeLoad(url, callback) {
+  console.log("LOADING:", url);
+
   fetch(url)
     .then(res => {
-      if (!res.ok) throw new Error("HTTP error " + res.status + " for " + url);
+      console.log("STATUS:", url, res.status);
+
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
       return res.json();
     })
-    .then(data => callback(data))
+    .then(data => {
+      console.log("SUCCESS:", url, data);
+      callback(data);
+    })
     .catch(err => {
-      console.log("LOAD FAILED:", url, err);
+      console.error("FAILED:", url, err);
     });
 }
 
