@@ -90,13 +90,13 @@
         },
 
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.name + "</b><br>" +
-            "Faction: " + feature.properties.faction + "<br>" +
-            "<i>" + feature.properties.date + "</i>"
-          );
-        }
-
+  layer.bindPopup(
+    "<b>" + feature.properties.name + "</b><br>" +
+    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
+    "<b>Date:</b> " + feature.properties.date + "<br>" +
+    "<b>Confidence:</b> " + feature.properties.confidence
+  );
+}
       }).addTo(map);
 
     });
@@ -133,14 +133,14 @@
         },
 
         onEachFeature: function (feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.name + "</b><br>" +
-            "Faction: " + feature.properties.faction + "<br>" +
-            "Status: " + feature.properties.status + "<br>" +
-            "<i>" + feature.properties.date + "</i><br>" +
-            "Confidence: " + feature.properties.confidence
-          );
-        }
+  layer.bindPopup(
+    "<b>" + feature.properties.name + "</b><br>" +
+    "<b>Faction:</b> " + feature.properties.faction + "<br>" +
+    "<b>Status:</b> " + feature.properties.status + "<br>" +
+    "<b>Date:</b> " + feature.properties.date + "<br>" +
+    "<b>Confidence:</b> " + feature.properties.confidence
+  );
+}
 
       }).addTo(map);
 
