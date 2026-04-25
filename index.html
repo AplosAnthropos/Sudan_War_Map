@@ -51,17 +51,25 @@
         },
 
         onEachFeature: function (feature, layer) {
+  onEachFeature: function (feature, layer) {
+
+  let confidence = feature.properties.confidence;
+  let confColor = "gray";
+
+  if (confidence === "high") confColor = "green";
+  if (confidence === "medium") confColor = "orange";
+  if (confidence === "low") confColor = "red";
+
   layer.bindPopup(
     "<b>" + feature.properties.title + "</b><br>" +
     "<b>Type:</b> " + feature.properties.type + "<br>" +
     "<b>Faction:</b> " + feature.properties.faction + "<br>" +
     "<b>Description:</b> " + feature.properties.description + "<br>" +
     "<b>Date:</b> " + feature.properties.date + "<br>" +
-    "<b>Confidence:</b> " + feature.properties.confidence + "<br>" +
+    "<b>Confidence:</b> <span style='color:" + confColor + "'>" + confidence + "</span><br>" +
     "<b>Source:</b> " + feature.properties.source
   );
 }
-
       }).addTo(map);
 
     });
