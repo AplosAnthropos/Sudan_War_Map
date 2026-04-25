@@ -9,130 +9,115 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
 
 /* =========================
-   EVENTS LAYER (POINTS)
+   SAFE LOADER FUNCTION
 ========================= */
-function loadEvents() {
+function safeLoad(url, callback) {
+  fetch(url)
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP error " + res.status + " for " + url);
+      return res.json();
+    })
+    .then(data => callback(data))
+    .catch(err => {
+      console.log("LOAD FAILED:", url, err);
+    });
+}
 
-  fetch('events.geojson')
-    .then(res => res.json())
-    .then(data => {
+/* =========================
+   EVENTS LAYER
+========================= */
+function loadEvents(data) {
 
-      let combined = {
-        type: "FeatureCollection",
-        features: data.features.concat(savedEvents)
+  let features = data.features || [];
+
+  let combined = {
+    type: "FeatureCollection",
+    features: features.concat(savedEvents)
+  };
+
+  L.geoJSON(combined, {
+    pointToLayer: function (feature, latlng) {
+
+      let color = "blue";
+
+      if (feature.properties?.type === "clash") color = "red";
+      if (feature.properties?.type === "movement") color = "orange";
+      if (feature.properties?.type === "airstrike") color = "black";
+
+      return L.circleMarker(latlng, {
+        radius: 6,
+        fillColor: color,
+        color: "#000",
+        weight: 1,
+        fillOpacity: 0.8
+      });
+    },
+
+    onEachFeature: function (feature, layer) {
+      layer.bindPopup(
+        "<b>" + (feature.properties?.title || "No title") + "</b><br>" +
+        (feature.properties?.description || "")
+      );
+    }
+
+  }).addTo(map);
+}
+
+/* =========================
+   FRONTLINES
+========================= */
+function loadFrontlines(data) {
+
+  L.geoJSON(data, {
+
+    style: function(feature) {
+
+      let faction = feature.properties?.faction;
+
+      let color = "gray";
+      if (faction === "SAF") color = "blue";
+      if (faction === "RSF") color = "orange";
+
+      return {
+        color: color,
+        weight: 3
       };
+    }
 
-      L.geoJSON(combined, {
-        pointToLayer: function (feature, latlng) {
-
-          let color = "blue";
-
-          if (feature.properties.type === "clash") color = "red";
-          if (feature.properties.type === "movement") color = "orange";
-          if (feature.properties.type === "airstrike") color = "black";
-
-          return L.circleMarker(latlng, {
-            radius: 6,
-            fillColor: color,
-            color: "#000",
-            weight: 1,
-            fillOpacity: 0.8
-          });
-        },
-
-        onEachFeature: function (feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.title + "</b><br>" +
-            (feature.properties.description || "")
-          );
-        }
-
-      }).addTo(map);
-
-    });
+  }).addTo(map);
 }
 
 /* =========================
-   FRONTLINES LAYER (LINES)
+   CONTROL ZONES
 ========================= */
-function loadFrontlines() {
+function loadControl(data) {
 
-  fetch('frontlines.geojson')
-    .then(res => res.json())
-    .then(data => {
+  L.geoJSON(data, {
 
-      L.geoJSON(data, {
+    style: function(feature) {
 
-        style: function(feature) {
+      let faction = feature.properties?.faction;
 
-          let faction = feature.properties.faction;
+      let color = "gray";
+      if (faction === "SAF") color = "blue";
+      if (faction === "RSF") color = "orange";
 
-          let color = "gray";
-          if (faction === "SAF") color = "blue";
-          if (faction === "RSF") color = "orange";
+      return {
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.2,
+        weight: 2
+      };
+    }
 
-          return {
-            color: color,
-            weight: 3
-          };
-        },
-
-        onEachFeature: function(feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.name + "</b><br>" +
-            feature.properties.faction
-          );
-        }
-
-      }).addTo(map);
-
-    });
+  }).addTo(map);
 }
 
 /* =========================
-   CONTROL ZONES (POLYGONS)
+   INIT (SAFE SEQUENCED LOAD)
 ========================= */
-function loadControl() {
-
-  fetch('control.geojson')
-    .then(res => res.json())
-    .then(data => {
-
-      L.geoJSON(data, {
-
-        style: function(feature) {
-
-          let faction = feature.properties.faction;
-
-          let color = "gray";
-          if (faction === "SAF") color = "blue";
-          if (faction === "RSF") color = "orange";
-
-          return {
-            color: color,
-            fillColor: color,
-            fillOpacity: 0.2,
-            weight: 2
-          };
-        },
-
-        onEachFeature: function(feature, layer) {
-          layer.bindPopup(
-            "<b>" + feature.properties.name + "</b><br>" +
-            feature.properties.faction
-          );
-        }
-
-      }).addTo(map);
-
-    });
-}
-
-/* =========================
-   INIT ALL LAYERS
-========================= */
-loadEvents();
-loadFrontlines();
-loadControl();
+safeLoad('events.geojson', loadEvents);
+safeLoad('frontlines.geojson', loadFrontlines);
+safeLoad('control.geojson', loadControl);
 
 </script>
