@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sudan Conflict Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <style>
+    #map { height: 100vh; margin: 0; padding: 0; }
+  </style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
 
 console.log("MAP SCRIPT LOADED");
@@ -12,19 +32,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // =========================
-// LAYER GROUPS (IMPORTANT)
-// =========================
-let eventsLayer = L.layerGroup();
-let frontlinesLayer = L.layerGroup();
-
-// =========================
-// EVENTS
+// EVENTS LAYER
 // =========================
 fetch('events.geojson')
   .then(res => res.json())
   .then(data => {
 
-    let geo = L.geoJSON(data, {
+    L.geoJSON(data, {
       pointToLayer: function (feature, latlng) {
 
         let color = "blue";
@@ -48,21 +62,19 @@ fetch('events.geojson')
           (feature.properties?.description || "")
         );
       }
-    });
+    }).addTo(map);
 
-    eventsLayer.addLayer(geo);
-    eventsLayer.addTo(map);
-
-  });
+  })
+  .catch(err => console.log("EVENTS ERROR:", err));
 
 // =========================
-// FRONTLINES
+// FRONTLINES (BATTLE LINES)
 // =========================
 fetch('frontlines.geojson')
   .then(res => res.json())
   .then(data => {
 
-    let geo = L.geoJSON(data, {
+    L.geoJSON(data, {
 
       style: function(feature) {
 
@@ -85,23 +97,12 @@ fetch('frontlines.geojson')
         );
       }
 
-    });
+    }).addTo(map);
 
-    frontlinesLayer.addLayer(geo);
-    frontlinesLayer.addTo(map);
-
-  });
-
-// =========================
-// LAYER CONTROL PANEL
-// =========================
-let overlayMaps = {
-  "Events": eventsLayer,
-  "Frontlines": frontlinesLayer
-};
-
-L.control.layers(null, overlayMaps, {
-  collapsed: false
-}).addTo(map);
+  })
+  .catch(err => console.log("FRONTLINES ERROR:", err));
 
 </script>
+
+</body>
+</html>
