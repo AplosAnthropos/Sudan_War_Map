@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "title": "Clash in Khartoum",
+        "description": "Reported fighting between SAF and RSF",
+        "date": "2026-04-25"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [32.5599, 15.5007]
+      }
+    }
+  ]
+}
