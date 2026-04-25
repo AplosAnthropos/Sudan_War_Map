@@ -6,11 +6,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
   <style>
     #map { height: 100vh; }
+
+    #panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
+      background: white;
+      padding: 10px;
+      width: 320px;
+      border-radius: 8px;
+      font-family: Arial;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 5px;
+      padding: 6px;
+    }
   </style>
 </head>
+
 <body>
+
+<div id="panel">
+  <h3>Add Event</h3>
+  <textarea id="eventBox" placeholder="Paste FULL GeoJSON Feature here"></textarea>
+  <button onclick="addEvent()">Add to Map</button>
+  <button onclick="clearEvents()">Clear Saved Events</button>
+</div>
 
 <div id="map"></div>
 
@@ -18,129 +51,82 @@
 
 <script>
 
+  // =========================
+  // MAP INIT
+  // =========================
   var map = L.map('map').setView([15.5, 32.5], 6);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
 
-  // ====================
-  // EVENTS
-  // ====================
-  
-fetch('events.geojson')
-  .then(res => res.json())
-  .then(data => {
+  // =========================
+  // LOCAL STORAGE EVENTS
+  // =========================
+  let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
 
-    let combined = {
-      type: "FeatureCollection",
-      features: data.features.concat(savedEvents)
-    };
+  function addEvent() {
+    let input = document.getElementById("eventBox").value;
 
-    L.geoJSON(combined, {
+    try {
+      let feature = JSON.parse(input);
 
-      pointToLayer: function(feature, latlng) {
-        let color = "blue";
-
-        if (feature.properties.type === "clash") color = "red";
-        if (feature.properties.type === "movement") color = "orange";
-        if (feature.properties.type === "airstrike") color = "black";
-
-        return L.circleMarker(latlng, {
-          radius: 8,
-          fillColor: color,
-          color: "#000",
-          weight: 1,
-          fillOpacity: 0.8
-        });
-      },
-
-      onEachFeature: function(feature, layer) {
-        layer.bindPopup(
-          `<b>${feature.properties.title}</b><br>` +
-          `${feature.properties.description || ""}`
-        );
+      if (!feature || feature.type !== "Feature") {
+        alert("Invalid GeoJSON Feature");
+        return;
       }
 
-    }).addTo(map);
+      savedEvents.push(feature);
+      localStorage.setItem("events", JSON.stringify(savedEvents));
 
-  });
+      alert("Event added!");
+      location.reload();
 
-  // ====================
-  // FRONTLINES
-  // ====================
-  fetch('frontlines.geojson')
+    } catch (e) {
+      alert("Invalid JSON format");
+    }
+  }
+
+  function clearEvents() {
+    localStorage.removeItem("events");
+    location.reload();
+  }
+
+  // =========================
+  // LOAD GEOJSON + LOCAL EVENTS
+  // =========================
+  fetch('events.geojson')
     .then(res => res.json())
     .then(data => {
 
-      L.geoJSON(data, {
+      let combined = {
+        type: "FeatureCollection",
+        features: data.features.concat(savedEvents)
+      };
 
-        style: function(feature) {
+      L.geoJSON(combined, {
 
-          let faction = feature.properties.faction;
-          let color = "red";
+        pointToLayer: function (feature, latlng) {
 
-          if (faction === "RSF") color = "orange";
-          if (faction === "SAF") color = "blue";
+          let color = "blue";
 
-          return {
-            color: color,
-            weight: 4
-          };
-        },
+          if (feature.properties.type === "clash") color = "red";
+          if (feature.properties.type === "movement") color = "orange";
+          if (feature.properties.type === "airstrike") color = "black";
 
-        onEachFeature: function (feature, layer) {
-
-          layer.bindPopup(
-            "<b>" + (feature.properties.name || "") + "</b><br>" +
-            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
-            "<b>Date:</b> " + (feature.properties.date || "")
-          );
-        }
-
-      }).addTo(map);
-
-    });
-
-  // ====================
-  // CONTROL AREAS
-  // ====================
-  fetch('control.geojson')
-    .then(res => res.json())
-    .then(data => {
-
-      L.geoJSON(data, {
-
-        style: function(feature) {
-
-          let faction = feature.properties.faction;
-          let status = feature.properties.status;
-
-          let color = "gray";
-
-          if (faction === "RSF") color = "orange";
-          if (faction === "SAF") color = "blue";
-          if (faction === "contested") color = "purple";
-
-          let fillOpacity = 0.2;
-          if (status === "contested") fillOpacity = 0.1;
-
-          return {
-            color: color,
+          return L.circleMarker(latlng, {
+            radius: 8,
             fillColor: color,
-            fillOpacity: fillOpacity,
-            weight: 2
-          };
+            color: "#000",
+            weight: 1,
+            fillOpacity: 0.8
+          });
         },
 
         onEachFeature: function (feature, layer) {
-
           layer.bindPopup(
-            "<b>" + (feature.properties.name || "") + "</b><br>" +
-            "<b>Faction:</b> " + (feature.properties.faction || "") + "<br>" +
-            "<b>Status:</b> " + (feature.properties.status || "") + "<br>" +
-            "<b>Date:</b> " + (feature.properties.date || "") + "<br>" +
-            "<b>Confidence:</b> " + (feature.properties.confidence || "")
+            "<b>" + (feature.properties.title || "No title") + "</b><br>" +
+            (feature.properties.description || "")
           );
         }
 
