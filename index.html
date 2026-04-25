@@ -41,12 +41,28 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   .then(data => {
 
     L.geoJSON(data, {
-      style: function(feature) {
-        return {
-          color: "red",
-          weight: 4
-        };
-      },
+     style: function(feature) {
+
+  let faction = feature.properties.faction;
+  let status = feature.properties.status;
+
+  let color = "gray";
+
+  if (faction === "RSF") color = "orange";
+  if (faction === "SAF") color = "blue";
+  if (faction === "contested") color = "purple";
+
+  let fillOpacity = 0.2;
+
+  if (status === "contested") fillOpacity = 0.1;
+
+  return {
+    color: color,
+    fillColor: color,
+    fillOpacity: fillOpacity,
+    weight: 2
+  };
+}
 
       onEachFeature: function (feature, layer) {
         layer.bindPopup(
