@@ -134,6 +134,36 @@
 
     });
 
+  fetch('frontlines.geojson')
+  .then(res => res.json())
+  .then(data => {
+
+    L.geoJSON(data, {
+      style: function(feature) {
+
+        let faction = feature.properties.faction;
+        let color = "gray";
+
+        if (faction === "SAF") color = "blue";
+        if (faction === "RSF") color = "orange";
+
+        return {
+          color: color,
+          weight: 3
+        };
+      },
+
+      onEachFeature: function(feature, layer) {
+        layer.bindPopup(
+          "<b>" + feature.properties.name + "</b><br>" +
+          feature.properties.faction
+        );
+      }
+
+    }).addTo(map);
+
+  });
+
 </script>
 
 </body>
