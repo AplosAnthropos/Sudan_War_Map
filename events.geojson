@@ -15,3 +15,24 @@
     }
   ]
 }
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [22.44, 13.45]
+      },
+      "properties": {
+        "title": "RSF consolidation in West Darfur",
+        "type": "movement",
+        "faction": "RSF vs SAF",
+        "description": "RSF is reported to be killing civilians and consolidating control in West Darfur following the fall of el-Fasher, the last army stronghold in the region, in late October.",
+        "date": "2026-04-25",
+        "confidence": "medium",
+        "source": "unknown"
+      }
+    }
+  ]
+}
