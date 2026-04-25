@@ -1,26 +1,35 @@
-fetch('frontlines.geojson')
-  .then(res => {
-    console.log("FRONTLINES STATUS:", res.status);
-    return res.json();
-  })
-  .then(data => {
-    console.log("FRONTLINES DATA:", data);
-
-    L.geoJSON(data, {
-      style: function(feature) {
-
-        let faction = feature.properties?.faction;
-
-        let color = "gray";
-        if (faction === "SAF") color = "blue";
-        if (faction === "RSF") color = "orange";
-
-        return {
-          color: color,
-          weight: 3
-        };
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Khartoum Frontline Segment",
+        "faction": "SAF",
+        "status": "active"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [32.50, 15.60],
+          [32.70, 15.40]
+        ]
       }
-    }).addTo(map);
-
-  })
-  .catch(err => console.log("FRONTLINES ERROR:", err));
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Omdurman Contact Line",
+        "faction": "RSF",
+        "status": "active"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [32.40, 15.65],
+          [32.55, 15.50]
+        ]
+      }
+    }
+  ]
+}
