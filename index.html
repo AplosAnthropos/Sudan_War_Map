@@ -16,72 +16,132 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+
+  // Initialize map
   var map = L.map('map').setView([15.5, 32.5], 6);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+  // Base layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
+  // --------------------
+  // EVENTS (POINTS)
+  // --------------------
   fetch('events.geojson')
-  .then(res => res.json())
-  .then(data => {
-    L.geoJSON(data, {
-      onEachFeature: function (feature, layer) {
-        layer.bindPopup(
-          "<b>" + feature.properties.title + "</b><br>" +
-          feature.properties.description + "<br>" +
-          "<i>" + feature.properties.date + "</i>"
-        );
-      }
-    }).addTo(map);
-  });
+    .then(res => res.json())
+    .then(data => {
 
+      var eventsLayer = L.geoJSON(data, {
+
+        pointToLayer: function (feature, latlng) {
+          let color = "blue";
+
+          if (feature.properties.type === "clash") color = "red";
+          if (feature.properties.type === "movement") color = "orange";
+          if (feature.properties.type === "airstrike") color = "black";
+
+          return L.circleMarker(latlng, {
+            radius: 8,
+            fillColor: color,
+            color: "#000",
+            weight: 1,
+            fillOpacity: 0.8
+          });
+        },
+
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup(
+            "<b>" + feature.properties.title + "</b><br>" +
+            feature.properties.faction + "<br>" +
+            feature.properties.description + "<br>" +
+            "<i>" + feature.properties.date + "</i>"
+          );
+        }
+
+      }).addTo(map);
+
+    });
+
+  // --------------------
+  // FRONTLINES (LINES)
+  // --------------------
   fetch('frontlines.geojson')
-  .then(res => res.json())
-  .then(data => {
+    .then(res => res.json())
+    .then(data => {
 
-    L.geoJSON(data, {
-     style: function(feature) {
+      var frontlineLayer = L.geoJSON(data, {
 
-  let faction = feature.properties.faction;
-  let status = feature.properties.status;
+        style: function(feature) {
 
-  let color = "gray";
+          let faction = feature.properties.faction;
+          let color = "red";
 
-  if (faction === "RSF") color = "orange";
-  if (faction === "SAF") color = "blue";
-  if (faction === "contested") color = "purple";
+          if (faction === "RSF") color = "orange";
+          if (faction === "SAF") color = "blue";
 
-  let fillOpacity = 0.2;
+          return {
+            color: color,
+            weight: 4
+          };
+        },
 
-  if (status === "contested") fillOpacity = 0.1;
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup(
+            "<b>" + feature.properties.name + "</b><br>" +
+            "Faction: " + feature.properties.faction + "<br>" +
+            "<i>" + feature.properties.date + "</i>"
+          );
+        }
 
-  return {
-    color: color,
-    fillColor: color,
-    fillOpacity: fillOpacity,
-    weight: 2
-  };
-},
+      }).addTo(map);
 
-onEachFeature: function (feature, layer) {
-  layer.bindPopup(
-    "<b>" + feature.properties.name + "</b><br>" +
-    feature.properties.faction + "<br>" +
-    "<i>" + feature.properties.date + "</i>"
-  );
-}
-      onEachFeature: function (feature, layer) {
-        layer.bindPopup(
-          "<b>" + feature.properties.name + "</b><br>" +
-          feature.properties.faction + "<br>" +
-          "<i>" + feature.properties.date + "</i>"
-        );
-      }
+    });
 
-    }).addTo(map);
+  // --------------------
+  // CONTROL (POLYGONS)
+  // --------------------
+  fetch('control.geojson')
+    .then(res => res.json())
+    .then(data => {
 
-  });
+      var controlLayer = L.geoJSON(data, {
+
+        style: function(feature) {
+
+          let faction = feature.properties.faction;
+          let status = feature.properties.status;
+
+          let color = "gray";
+
+          if (faction === "RSF") color = "orange";
+          if (faction === "SAF") color = "blue";
+          if (faction === "contested") color = "purple";
+
+          let fillOpacity = 0.2;
+          if (status === "contested") fillOpacity = 0.1;
+
+          return {
+            color: color,
+            fillColor: color,
+            fillOpacity: fillOpacity,
+            weight: 2
+          };
+        },
+
+        onEachFeature: function (feature, layer) {
+          layer.bindPopup(
+            "<b>" + feature.properties.name + "</b><br>" +
+            "Faction: " + feature.properties.faction + "<br>" +
+            "Status: " + feature.properties.status + "<br>" +
+            "<i>" + feature.properties.date + "</i><br>" +
+            "Confidence: " + feature.properties.confidence
+          );
+        }
+
+      }).addTo(map);
+
+    });
 
 </script>
 
