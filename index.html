@@ -1,148 +1,68 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sudan Conflict Map</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
-  <style>
-    #map { height: 100vh; }
-
-    #panel {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      background: white;
-      padding: 10px;
-      width: 320px;
-      border-radius: 8px;
-      font-family: Arial;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    textarea {
-      width: 100%;
-      height: 140px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 5px;
-      padding: 6px;
-    }
-  </style>
-</head>
-
-<body>
-
-<div id="panel">
-  <h3>Add Event</h3>
-  <textarea id="eventBox" placeholder="Paste FULL GeoJSON Feature here"></textarea>
-  <button onclick="addEvent()">Add to Map</button>
-  <button onclick="clearEvents()">Clear Saved Events</button>
-</div>
-
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
 
-  // =========================
-  // MAP INIT
-  // =========================
-  var map = L.map('map').setView([15.5, 32.5], 6);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // =========================
-  // LOCAL STORAGE EVENTS
-  // =========================
-  let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
-
-  function addEvent() {
-    let input = document.getElementById("eventBox").value;
-
-    try {
-      let feature = JSON.parse(input);
-
-      if (!feature || feature.type !== "Feature") {
-        alert("Invalid GeoJSON Feature");
-        return;
-      }
-
-      savedEvents.push(feature);
-      localStorage.setItem("events", JSON.stringify(savedEvents));
-
-      alert("Event added!");
-      location.reload();
-
-    } catch (e) {
-      alert("Invalid JSON format");
-    }
-  }
-
-  function clearEvents() {
-    localStorage.removeItem("events");
-    location.reload();
-  }
-
-  // =========================
-  // LOAD GEOJSON + LOCAL EVENTS
-  // =========================
-  fetch('events.geojson')
-    .then(res => res.json())
-    .then(data => {
-
-      let combined = {
-        type: "FeatureCollection",
-        features: data.features.concat(savedEvents)
-      };
-
-      L.geoJSON(combined, {
-
-        pointToLayer: function (feature, latlng) {
-
-          let color = "blue";
-
-          if (feature.properties.type === "clash") color = "red";
-          if (feature.properties.type === "movement") color = "orange";
-          if (feature.properties.type === "airstrike") color = "black";
-
-          return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: color,
-            color: "#000",
-            weight: 1,
-            fillOpacity: 0.8
-          });
-        },
-
-        onEachFeature: function (feature, layer) {
-          layer.bindPopup(
-            "<b>" + (feature.properties.title || "No title") + "</b><br>" +
-            (feature.properties.description || "")
-          );
-        }
-
-      }).addTo(map);
-
-    })
-    .catch(err => console.log("EVENTS ERROR:", err));
+console.log("MAP SCRIPT LOADED");
 
 // =========================
-// FRONTLINES (BATTLE LINES)
+// MAP INIT
+// =========================
+var map = L.map('map').setView([15.5, 32.5], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// =========================
+// LAYER GROUPS (IMPORTANT)
+// =========================
+let eventsLayer = L.layerGroup();
+let frontlinesLayer = L.layerGroup();
+
+// =========================
+// EVENTS
+// =========================
+fetch('events.geojson')
+  .then(res => res.json())
+  .then(data => {
+
+    let geo = L.geoJSON(data, {
+      pointToLayer: function (feature, latlng) {
+
+        let color = "blue";
+
+        if (feature.properties?.type === "clash") color = "red";
+        if (feature.properties?.type === "movement") color = "orange";
+        if (feature.properties?.type === "airstrike") color = "black";
+
+        return L.circleMarker(latlng, {
+          radius: 6,
+          fillColor: color,
+          color: "#000",
+          weight: 1,
+          fillOpacity: 0.8
+        });
+      },
+
+      onEachFeature: function (feature, layer) {
+        layer.bindPopup(
+          "<b>" + (feature.properties?.title || "No title") + "</b><br>" +
+          (feature.properties?.description || "")
+        );
+      }
+    });
+
+    eventsLayer.addLayer(geo);
+    eventsLayer.addTo(map);
+
+  });
+
+// =========================
+// FRONTLINES
 // =========================
 fetch('frontlines.geojson')
   .then(res => res.json())
   .then(data => {
 
-    L.geoJSON(data, {
+    let geo = L.geoJSON(data, {
 
       style: function(feature) {
 
@@ -160,17 +80,28 @@ fetch('frontlines.geojson')
 
       onEachFeature: function(feature, layer) {
         layer.bindPopup(
-          "<b>" + feature.properties.name + "</b><br>" +
-          feature.properties.faction
+          "<b>" + (feature.properties?.name || "Frontline") + "</b><br>" +
+          "Faction: " + (feature.properties?.faction || "unknown")
         );
       }
 
-    }).addTo(map);
+    });
 
-  })
-  .catch(err => console.log("FRONTLINES ERROR:", err));
-  
+    frontlinesLayer.addLayer(geo);
+    frontlinesLayer.addTo(map);
+
+  });
+
+// =========================
+// LAYER CONTROL PANEL
+// =========================
+let overlayMaps = {
+  "Events": eventsLayer,
+  "Frontlines": frontlinesLayer
+};
+
+L.control.layers(null, overlayMaps, {
+  collapsed: false
+}).addTo(map);
+
 </script>
-
-</body>
-</html>
