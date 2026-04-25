@@ -1,100 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Sudan Conflict Map</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
-  <style>
-    #map { height: 100vh; }
-
-    #panel {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 9999;
-      background: white;
-      padding: 10px;
-      width: 320px;
-      border-radius: 8px;
-      font-family: Arial;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    textarea {
-      width: 100%;
-      height: 140px;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 5px;
-      padding: 6px;
-    }
-  </style>
-</head>
-
-<body>
-
-<div id="panel">
-  <h3>Add Event</h3>
-  <textarea id="eventBox" placeholder="Paste FULL GeoJSON Feature here"></textarea>
-  <button onclick="addEvent()">Add to Map</button>
-  <button onclick="clearEvents()">Clear Saved Events</button>
-</div>
-
-<div id="map"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script>
 
-  // =========================
-  // MAP INIT
-  // =========================
-  var map = L.map('map').setView([15.5, 32.5], 6);
+var map = L.map('map').setView([15.5, 32.5], 6);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-  // =========================
-  // LOCAL STORAGE EVENTS
-  // =========================
-  let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
+let savedEvents = JSON.parse(localStorage.getItem("events")) || [];
 
-  function addEvent() {
-    let input = document.getElementById("eventBox").value;
+/* =========================
+   EVENTS LAYER (POINTS)
+========================= */
+function loadEvents() {
 
-    try {
-      let feature = JSON.parse(input);
-
-      if (!feature || feature.type !== "Feature") {
-        alert("Invalid GeoJSON Feature");
-        return;
-      }
-
-      savedEvents.push(feature);
-      localStorage.setItem("events", JSON.stringify(savedEvents));
-
-      alert("Event added!");
-      location.reload();
-
-    } catch (e) {
-      alert("Invalid JSON format");
-    }
-  }
-
-  function clearEvents() {
-    localStorage.removeItem("events");
-    location.reload();
-  }
-
-  // =========================
-  // LOAD GEOJSON + LOCAL EVENTS
-  // =========================
   fetch('events.geojson')
     .then(res => res.json())
     .then(data => {
@@ -105,7 +23,6 @@
       };
 
       L.geoJSON(combined, {
-
         pointToLayer: function (feature, latlng) {
 
           let color = "blue";
@@ -115,7 +32,7 @@
           if (feature.properties.type === "airstrike") color = "black";
 
           return L.circleMarker(latlng, {
-            radius: 8,
+            radius: 6,
             fillColor: color,
             color: "#000",
             weight: 1,
@@ -125,7 +42,7 @@
 
         onEachFeature: function (feature, layer) {
           layer.bindPopup(
-            "<b>" + (feature.properties.title || "No title") + "</b><br>" +
+            "<b>" + feature.properties.title + "</b><br>" +
             (feature.properties.description || "")
           );
         }
@@ -133,38 +50,89 @@
       }).addTo(map);
 
     });
+}
+
+/* =========================
+   FRONTLINES LAYER (LINES)
+========================= */
+function loadFrontlines() {
 
   fetch('frontlines.geojson')
-  .then(res => res.json())
-  .then(data => {
+    .then(res => res.json())
+    .then(data => {
 
-    L.geoJSON(data, {
-      style: function(feature) {
+      L.geoJSON(data, {
 
-        let faction = feature.properties.faction;
-        let color = "gray";
+        style: function(feature) {
 
-        if (faction === "SAF") color = "blue";
-        if (faction === "RSF") color = "orange";
+          let faction = feature.properties.faction;
 
-        return {
-          color: color,
-          weight: 3
-        };
-      },
+          let color = "gray";
+          if (faction === "SAF") color = "blue";
+          if (faction === "RSF") color = "orange";
 
-      onEachFeature: function(feature, layer) {
-        layer.bindPopup(
-          "<b>" + feature.properties.name + "</b><br>" +
-          feature.properties.faction
-        );
-      }
+          return {
+            color: color,
+            weight: 3
+          };
+        },
 
-    }).addTo(map);
+        onEachFeature: function(feature, layer) {
+          layer.bindPopup(
+            "<b>" + feature.properties.name + "</b><br>" +
+            feature.properties.faction
+          );
+        }
 
-  });
+      }).addTo(map);
+
+    });
+}
+
+/* =========================
+   CONTROL ZONES (POLYGONS)
+========================= */
+function loadControl() {
+
+  fetch('control.geojson')
+    .then(res => res.json())
+    .then(data => {
+
+      L.geoJSON(data, {
+
+        style: function(feature) {
+
+          let faction = feature.properties.faction;
+
+          let color = "gray";
+          if (faction === "SAF") color = "blue";
+          if (faction === "RSF") color = "orange";
+
+          return {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.2,
+            weight: 2
+          };
+        },
+
+        onEachFeature: function(feature, layer) {
+          layer.bindPopup(
+            "<b>" + feature.properties.name + "</b><br>" +
+            feature.properties.faction
+          );
+        }
+
+      }).addTo(map);
+
+    });
+}
+
+/* =========================
+   INIT ALL LAYERS
+========================= */
+loadEvents();
+loadFrontlines();
+loadControl();
 
 </script>
-
-</body>
-</html>
