@@ -132,8 +132,12 @@
 
       }).addTo(map);
 
-    });
-  
+    })
+    .catch(err => console.log("EVENTS ERROR:", err));
+
+// =========================
+// FRONTLINES (BATTLE LINES)
+// =========================
 fetch('frontlines.geojson')
   .then(res => res.json())
   .then(data => {
