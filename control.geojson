@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "RSF Control - West Khartoum",
+        "faction": "RSF",
+        "status": "controlled",
+        "date": "2026-04-25",
+        "confidence": "low"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [32.45, 15.60],
+          [32.55, 15.60],
+          [32.55, 15.50],
+          [32.45, 15.50],
+          [32.45, 15.60]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "SAF Control - East Khartoum",
+        "faction": "SAF",
+        "status": "controlled",
+        "date": "2026-04-25",
+        "confidence": "medium"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [32.55, 15.60],
+          [32.65, 15.60],
+          [32.65, 15.50],
+          [32.55, 15.50],
+          [32.55, 15.60]
+        ]]
+      }
+    }
+  ]
+}
